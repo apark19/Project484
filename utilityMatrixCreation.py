@@ -1,8 +1,6 @@
 import pandas as pd
 import csv
 import time
-from multiprocessing import Pool
-from functools import partial
 
 # UTF-8 / ISO-8859-1
 directorFrame = pd.read_csv('movie_directors.dat', encoding='unicode_escape', sep='\t',
@@ -39,18 +37,6 @@ def search_pair(id, frame):
         if (i[0] == id):
             attributes.append(i[1])
     return attributes
-
-
-def search_col(attributeList,rowToInsert,col):
-
-        if col in attributeList:
-            rowToInsert.append('1')
-            # attributeCount += 1
-            # print("appending 1")
-            # onesCount += 1
-        else:
-            rowToInsert.append('0')
-        return attributeList
 
 
 if __name__ == "__main__":
@@ -103,41 +89,33 @@ if __name__ == "__main__":
     # print(arr)
     # print(len(arr))
     # exit()
-    p = Pool(4)
-    print(userIDs[0])
 
-    for user in range(len(userIDs)):
-        userIndex = userIDs[user]
-
-        #print(userIndex)
-        #print(user)
-        #exit()
-
+    for userIndex in range(85000, 185000):
         if index == -1:
             outer.writerow(headers)
         else:
-            attributeList = search_pair(movieIDs[index], movieAttributePairs)
-            rowToInsert = [user, movieIDs[index], ratings[index]]
-            rowToInsert = list(p.map(partial(search_col,attributeList,rowToInsert),headers))
-            '''
+            attributeList = search_pair(movieIDs[userIndex], movieAttributePairs)
+            rowToInsert = [userIDs[userIndex], movieIDs[userIndex], ratings[userIndex]]
             for col in headers:
                 if col in attributeList:
                     rowToInsert.append('1')
-                    #attributeCount += 1
+                    attributeCount += 1
                     #print("appending 1")
-                    #onesCount += 1
+                    onesCount += 1
                 else:
                     rowToInsert.append('0')
-                #colCount += 1'''
-            #print("movieID", movieIDs[index])
+                colCount += 1
+            #print("userID", userIDs[userIndex])
+            #print("movieID", movieIDs[userIndex])
             #print("attributeCount: ", attributeCount)
-            print("length of attribute list: ", len(attributeList))
+            #print("length of attribute list: ", len(attributeList))
             #print("ColCount: ", colCount)
-            #colCount = 0
+            colCount = 0
             outer.writerow(rowToInsert)
-        if index == 1000:
-            break
-        #attributeCount = 0
+        #if index == 100:
+        #    break
+        print("index: ", index)
+        attributeCount = 0
         index += 1
 
     print("onesCount:", onesCount)
