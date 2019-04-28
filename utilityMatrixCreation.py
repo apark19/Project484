@@ -90,7 +90,7 @@ if __name__ == "__main__":
     # print(len(arr))
     # exit()
 
-    for userIndex in range(85000, 185000):
+    for userIndex in range(85000, 150000):
         if index == -1:
             outer.writerow(headers)
         else:
@@ -114,7 +114,7 @@ if __name__ == "__main__":
             outer.writerow(rowToInsert)
         #if index == 100:
         #    break
-        print("index: ", index)
+        print("userindex: ", userIndex)
         attributeCount = 0
         index += 1
 
