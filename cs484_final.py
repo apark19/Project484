@@ -1,4 +1,4 @@
-import nltk#the variable corpus is the training set
+import nltk
 import re
 import numpy as np
 import sklearn
@@ -15,14 +15,18 @@ import pandas as pd
 import copy
 from nltk.corpus import stopwords
 from functools import partial
+from nltk.stem import WordNetLemmatizer
 
 from nltk.tokenize import word_tokenize
 from nltk.stem import PorterStemmer
-
+from sklearn.ensemble import BaggingClassifier
+from sklearn.neural_network import MLPClassifier
+from scipy import sparse
+lem = WordNetLemmatizer()
 stpwrd = set(stopwords.words('english'))
 stpwrd_update = ["br","eof","i","im","i'm",",","it","as","the","this","but","its","it's","you" "also","for","us","was","to","on","there","of","in","his","hers","-"]
 stpwrd.update(stpwrd_update)
-lemmatizer = nltk.stem.WordNetLemmatizer
+
 def Pre(par):
     #par = list(par)
     
@@ -37,8 +41,8 @@ def Pre(par):
 	
 	
     if('' in paragraph):#removes any empty charectar within a passed paragrph that may be left over
-		while('' in paragraph):
-			paragraph.remove('')
+        while('' in paragraph):
+	        paragraph.remove('')
 	
     	
     paragraph = nltk.pos_tag(paragraph)#returns tuples with each word paired with parts of speech keyword https://medium.com/@gianpaul.r/tokenization-and-parts-of-speech-pos-tagging-in-pythons-nltk-library-2d30f70af13b
@@ -61,8 +65,10 @@ if __name__ == "__main__":
     x_train = list(x_train.itertuples())
     y_train = list(y_train.itertuples())
     x_tittles =  list(x_tittles.itertuples())
-    y_train = [list(row) for row in y_train]#converts pandas dataframe into list
+    y_train = [list(row)[0] for row in y_train]#converts pandas dataframe into list
     x_train = [list(x_train[i]) for i in range(len(x_train)) if(y_train[i][0]!="unknown")]#does the same as the list comprehension for y_train for x_train but removing the unknown movies
+    print(len(y_train))
+    print(len(x_train))
 
     x_tittles = [list(x_tittles[i]) for i in range(len(x_tittles)) if(y_train[i][0]!="unknown")]#does the same as the list comprehension for y_train for x_tittles but removing the unknown movies
     y_train = [y_train[i] for i in range(len(y_train)) if(y_train[i][0]!="unknown")]#removes unknown genre instances
@@ -72,15 +78,26 @@ if __name__ == "__main__":
     del x_tittles[0]
     movie_set = [copy.deepcopy(x_tittles),copy.deepcopy(x_train),copy.deepcopy(y_train)]#for ease in accessing evenly columned tittle, plot, and genre
     movie_set[1] = list(p.map(Pre, movie_set[1]))#processes each plot (can be inputed directly in tfidfVectorize().fit_transform as it is a list of strings)
-    """ 
-    print(x_train[0]) 
-    print(movie_set[1][0])
-    print(x_train[3])
-    print(movie_set[1][3])
-    print(x_train[67])
-    print(movie_set[1][67])
+    
+#    print(x_train[0]) 
+ #   print(movie_set[1][0])
+  #  print(x_train[3])
+   # print(movie_set[1][3])
+    #print(x_train[67])
+    #print(movie_set[1][67])
     #x_train is not modified. the difference in the processing can be seen in the execution of the above print statements
-    """
+    
+    vec = TfidfVectorizer()
+    training  = vec.fit_transform(movie_set[1])
+    #movie_set[1] = training.get_feature_names()
+    #movie_set[1] = sparse.csr_matrix(training.todense())
+    MLP = BaggingClassifier(MLPClassifier(hidden_layer_sizes=(37,)))
+    y_train  = np.array(y_train)
+    
+    print(training.shape)
+    print(y_train.shape)
+    MLP.fit(training,y_train)
+    #print(training)
     p.close()
     p.join()
 	
