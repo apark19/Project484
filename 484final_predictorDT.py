@@ -62,7 +62,7 @@ def Pre(par):
 	
     return new_paragraph
 def decision_tree(x_data,y_label,p):
-    DT = BaggingClassifier(DecisionTreeClassifier(criterion="entropy"),n_estimators=20)
+    DT = BaggingClassifier(DecisionTreeClassifier(criterion="entropy"),n_estimators=100)
     DT.fit(x_data,y_label)
     pred  = DT.predict(p)
     print(pred)
