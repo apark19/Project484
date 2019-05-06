@@ -23,6 +23,7 @@ from sklearn.ensemble import BaggingClassifier
 from sklearn.neural_network import MLPClassifier
 from sklearn.tree import DecisionTreeClassifier
 from scipy import sparse
+from sklearn.metrics import f1_score
 import codecs
 import csv
 lem = WordNetLemmatizer()
@@ -61,11 +62,19 @@ def Pre(par):
 	#once the issue is fixed, I would like to see if lemmatization could be implemented while maintainig reasonable runtime https://www.geeksforgeeks.org/python-lemmatization-with-nltk/ 	
 	
     return new_paragraph
-def decision_tree(x_data,y_label,p):
-    DT = BaggingClassifier(DecisionTreeClassifier(criterion="entropy"),n_estimators=100)
+def decision_tree(x_data,y_label,p,g_truth,titles):
+    DT = BaggingClassifier(DecisionTreeClassifier(criterion="entropy"),n_estimators=20)
     DT.fit(x_data,y_label)
     pred  = DT.predict(p)
-    print(pred)
+    score = f1_score(g_truth,pred, average='weighted')  
+    with codecs.open('results_dt.csv','w','utf-8') as outfile:
+        out = csv.writer(outfile)
+        out.writerow(['title','genre'])
+        for i in range(len(pred)):
+            
+            out.writerow([titles[i],pred[i]])
+    #print(pred)
+    print(score)
 def vectorize(data):
     vec = TfidfVectorizer()
     vector_data  = vec.fit_transform(data)
@@ -79,19 +88,20 @@ if __name__ == "__main__":
                 pd.read_csv()
     """
     train = pd.read_csv('training_data(movies).csv',index_col = 0)
-    test = pd.read_csv('movies_2020.csv',index_col = 0)
+    test = pd.read_csv('movies_2020.csv')
     train_x = [row for row in train['plot']]
+    titles = [row.lower() for row in test['movieTitle']]
     train_y = np.array([row for row in train['genre']])
     train_x = np.array(train_x)
     test_x = [ row  for row in test['description']]
-    
+    g_truth = [ row.lower()  for row in test['genre']]
     
     test_x = np.array(list(p.map(Pre,test_x)))
     training = vec.fit_transform(train_x)
     testing = vec.transform(test_x)
     print(training.shape)
     print(testing.shape)
-    decision_tree(training,train_y,testing)
+    decision_tree(training,train_y,testing,g_truth,titles)
     
     #print(test_x)
     #exit()

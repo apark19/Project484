@@ -63,13 +63,19 @@ def Pre(par):
 	#once the issue is fixed, I would like to see if lemmatization could be implemented while maintainig reasonable runtime https://www.geeksforgeeks.org/python-lemmatization-with-nltk/ 	
 	
     return new_paragraph
-def KNN(x_data,y_label,p,g_truth):
+def KNN(x_data,y_label,p,g_truth,titles):
    # mlp = BaggingClassifier(MLPClassifier(hidden_layer_sizes=(2,),random_state=0,max_iter=400),n_estimators=5)
-    knn = BaggingClassifier(KNeighborsClassifier(n_neighbors=13),n_estimators = 100)
+    knn = BaggingClassifier(KNeighborsClassifier(n_neighbors=13),n_estimators = 30)
     knn.fit(x_data,y_label)
     pred  = knn.predict(p)
-    score = f1_score(g_truth,pred, average='weighted')  
-    print(pred)
+    score = f1_score(g_truth,pred, average='weighted')
+    with codecs.open('results_knn.csv','w','utf-8') as outfile:
+        out = csv.writer(outfile)
+        out.writerow(['title','genre'])
+        for i in range(len(pred)):
+            
+            out.writerow([titles[i],pred[i]])
+    #print(pred)
     print(score)
 def vectorize(data):
     vec = TfidfVectorizer()
@@ -84,20 +90,21 @@ if __name__ == "__main__":
                 pd.read_csv()
     """
     train = pd.read_csv('training_data(movies).csv',index_col = 0)
-    test = pd.read_csv('movies_2020.csv',index_col = 0)
+    test = pd.read_csv('movies_2020.csv',)
     train_x = [row for row in train['plot']]
     train_y = np.array([row for row in train['genre']])
     train_x = np.array(train_x)
+    titles = [row.lower() for row in test['movieTitle']]
+   
     test_x = [ row  for row in test['description']]
     g_truth = [ row.lower()  for row in test['genre']]
-    
-    
+   
     test_x = np.array(list(p.map(Pre,test_x)))
     training = vec.fit_transform(train_x)
     testing = vec.transform(test_x)
     print(training.shape)
     print(testing.shape)
-    KNN(training,train_y,testing,g_truth)
+    KNN(training,train_y,testing,g_truth,titles)
     
     #print(test_x)
     #exit()
