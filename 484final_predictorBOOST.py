@@ -23,6 +23,7 @@ from sklearn.ensemble import BaggingClassifier
 from sklearn.neural_network import MLPClassifier
 from sklearn.tree import DecisionTreeClassifier
 from scipy import sparse
+from sklearn.ensemble import AdaBoostClassifier
 from sklearn.metrics import f1_score
 import codecs
 import csv
@@ -62,10 +63,10 @@ def Pre(par):
 	#once the issue is fixed, I would like to see if lemmatization could be implemented while maintainig reasonable runtime https://www.geeksforgeeks.org/python-lemmatization-with-nltk/ 	
 	
     return new_paragraph
-def neural_network(x_data,y_label,p,g_truth):
-    mlp = BaggingClassifier(MLPClassifier(hidden_layer_sizes=(2,),random_state=0,max_iter=400),n_estimators=5)
-    mlp.fit(x_data,y_label)
-    pred  = mlp.predict(p)
+def boost(x_data,y_label,p,g_truth):
+    ada = AdaBoostClassifier(n_estimators = 1000)
+    ada.fit(x_data,y_label)
+    pred  = ada.predict(p)
     score = f1_score(g_truth,pred, average='weighted')  
     print(pred)
     print(score)
@@ -74,6 +75,7 @@ def vectorize(data):
     vector_data  = vec.fit_transform(data)
     return vector_data
 if __name__ == "__main__":
+    seconds = time.time()
     p = Pool(4)
     """
      with codecs.open('training_data(movies).csv','r','utf-8') as x_data:
@@ -88,16 +90,17 @@ if __name__ == "__main__":
     train_x = np.array(train_x)
     test_x = [ row  for row in test['description']]
     g_truth = [ row.lower()  for row in test['genre']]
-    
-    
+   
     test_x = np.array(list(p.map(Pre,test_x)))
     training = vec.fit_transform(train_x)
     testing = vec.transform(test_x)
     print(training.shape)
     print(testing.shape)
-    neural_network(training,train_y,testing,g_truth)
+    boost(training,train_y,testing,g_truth)
     
     #print(test_x)
     #exit()
+    print("finished:")
+    print("time taken %f" % (time.time() - seconds))
     
     

@@ -22,6 +22,7 @@ from nltk.stem import PorterStemmer
 from sklearn.ensemble import BaggingClassifier
 from sklearn.neural_network import MLPClassifier
 from sklearn.tree import DecisionTreeClassifier
+from sklearn.neighbors import KNeighborsClassifier
 from scipy import sparse
 from sklearn.metrics import f1_score
 import codecs
@@ -62,10 +63,11 @@ def Pre(par):
 	#once the issue is fixed, I would like to see if lemmatization could be implemented while maintainig reasonable runtime https://www.geeksforgeeks.org/python-lemmatization-with-nltk/ 	
 	
     return new_paragraph
-def neural_network(x_data,y_label,p,g_truth):
-    mlp = BaggingClassifier(MLPClassifier(hidden_layer_sizes=(2,),random_state=0,max_iter=400),n_estimators=5)
-    mlp.fit(x_data,y_label)
-    pred  = mlp.predict(p)
+def KNN(x_data,y_label,p,g_truth):
+   # mlp = BaggingClassifier(MLPClassifier(hidden_layer_sizes=(2,),random_state=0,max_iter=400),n_estimators=5)
+    knn = BaggingClassifier(KNeighborsClassifier(n_neighbors=13),n_estimators = 100)
+    knn.fit(x_data,y_label)
+    pred  = knn.predict(p)
     score = f1_score(g_truth,pred, average='weighted')  
     print(pred)
     print(score)
@@ -95,7 +97,7 @@ if __name__ == "__main__":
     testing = vec.transform(test_x)
     print(training.shape)
     print(testing.shape)
-    neural_network(training,train_y,testing,g_truth)
+    KNN(training,train_y,testing,g_truth)
     
     #print(test_x)
     #exit()
