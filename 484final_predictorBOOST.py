@@ -64,7 +64,7 @@ def Pre(par):
 	
     return new_paragraph
 def boost(x_data,y_label,p,g_truth,titles):
-    ada = AdaBoostClassifier(n_estimators = 1000)
+    ada = AdaBoostClassifier(DecisionTreeClassifier(),n_estimators = 5)
     ada.fit(x_data,y_label)
     pred  = ada.predict(p)
     score = f1_score(g_truth,pred, average='weighted')  

@@ -82,6 +82,7 @@ def vectorize(data):
     vector_data  = vec.fit_transform(data)
     return vector_data
 if __name__ == "__main__":
+    seconds = time.time()
     p = Pool(4)
     """
      with codecs.open('training_data(movies).csv','r','utf-8') as x_data:
@@ -108,5 +109,7 @@ if __name__ == "__main__":
     
     #print(test_x)
     #exit()
+    print("finished:")
+    print("time taken %f" % (time.time() - seconds))
     
     
