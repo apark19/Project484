@@ -29,7 +29,8 @@ from sklearn.metrics import accuracy_score
 import codecs
 import csv
 from sklearn.neighbors import RadiusNeighborsClassifier
-
+import nltk
+sb = nltk.stem.SnowballStemmer('english')
 lem = WordNetLemmatizer()
 stpwrd = set(stopwords.words('english'))
 stpwrd_update = ["br", "eof", "i", "im", "i'm", ",", "it", "as", "the", "this", "but", "its", "it's", "you", "also",
@@ -62,7 +63,7 @@ def Pre(par):
         paragraph)  # returns tuples with each word paired with parts of speech keyword https://medium.com/@gianpaul.r/tokenization-and-parts-of-speech-pos-tagging-in-pythons-nltk-library-2d30f70af13b
     # print(paragraph)#the above link shows the keys for the nltk parts of speech
     # print(paragraph)
-    new_paragraph = [word[0] for word in paragraph if ((word[0] not in stpwrd) and (
+    new_paragraph = [sb.stem(word[0]) for word in paragraph if ((word[0] not in stpwrd) and (
                 word[1] in pos_keep))]  # the firs condition is uneccesary if the second works properly
 
     new_paragraph = " ".join(new_paragraph)
@@ -128,5 +129,6 @@ if __name__ == "__main__":
     # exit()
     print("finished:")
     print("time taken %f" % (time.time() - seconds))
+
 
 
