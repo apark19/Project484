@@ -25,6 +25,7 @@ from sklearn.tree import DecisionTreeClassifier
 from sklearn.neighbors import KNeighborsClassifier
 from scipy import sparse
 from sklearn.metrics import f1_score
+from sklearn.metrics import accuracy_score
 import codecs
 import csv
 lem = WordNetLemmatizer()
@@ -65,7 +66,7 @@ def Pre(par):
     return new_paragraph
 def KNN(x_data,y_label,p,g_truth,titles):
    # mlp = BaggingClassifier(MLPClassifier(hidden_layer_sizes=(2,),random_state=0,max_iter=400),n_estimators=5)
-    knn = BaggingClassifier(KNeighborsClassifier(n_neighbors=13),n_estimators = 30)
+    knn = BaggingClassifier(KNeighborsClassifier(n_neighbors=94),n_estimators = 100)
     knn.fit(x_data,y_label)
     pred  = knn.predict(p)
     score = f1_score(g_truth,pred, average='weighted')
@@ -76,7 +77,9 @@ def KNN(x_data,y_label,p,g_truth,titles):
             
             out.writerow([titles[i],pred[i]])
     #print(pred)
-    print(score)
+accuracy = accuracy_score(g_truth, pred, normalize=False)	
+    print("f1: %s" % (score))
+print("accuracy: %s" % (accuracy))	
 def vectorize(data):
     vec = TfidfVectorizer()
     vector_data  = vec.fit_transform(data)
@@ -95,9 +98,9 @@ if __name__ == "__main__":
     train_x = [row for row in train['plot']]
     train_y = np.array([row for row in train['genre']])
     train_x = np.array(train_x)
-    titles = [row.lower() for row in test['movieTitle']]
+    titles = [row for row in test['tiitle']]
    
-    test_x = [ row  for row in test['description']]
+    test_x = [ row  for row in test['plot']]
     g_truth = [ row.lower()  for row in test['genre']]
    
     test_x = np.array(list(p.map(Pre,test_x)))
