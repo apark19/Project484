@@ -7,4 +7,4 @@ cs484_final.py pre proccesses plot summary text data into new csv with Animation
 
 scrapperV2.py - python script that scraps HTML pages from movieweb.com by year
 titleformatter.py - python script that removes any extraneous characters from scrapper titles and makes lowercase genres for matching with training set
-
+trainingSetFiller.py - python script that creates a training set and test set by combining the scrapper data with original Kaggle data set.
