@@ -63,7 +63,7 @@ def Pre(par):
 	
     return new_paragraph
 def decision_tree(x_data,y_label,p,g_truth,titles):
-    DT = BaggingClassifier(DecisionTreeClassifier(criterion="entropy"),n_estimators=20)
+    DT = BaggingClassifier(DecisionTreeClassifier(),n_estimators=150,n_jobs=-1)
     DT.fit(x_data,y_label)
     pred  = DT.predict(p)
     score = f1_score(g_truth,pred, average='weighted')  
@@ -88,18 +88,24 @@ if __name__ == "__main__":
             with codecs.open('prediction_dtree.dat','w','utf-8') as predictions:
                 pd.read_csv()
     """
-    train = pd.read_csv('training_data(movies).csv',index_col = 0)
-    test = pd.read_csv('movies_2020.csv')
+    train = pd.read_csv('final_movies_training.csv', index_col=0)
+
+    test = pd.read_csv('testFinal.csv', )
+
     train_x = [row for row in train['plot']]
-    titles = [row.lower() for row in test['movieTitle']]
+    
     train_y = np.array([row for row in train['genre']])
     train_x = np.array(train_x)
-    test_x = [ row  for row in test['description']]
+    titles = [row for row in test['title']]
+
+    test_x = [ row  for row in test['plot']]
     g_truth = [ row.lower()  for row in test['genre']]
     
     test_x = np.array(list(p.map(Pre,test_x)))
     training = vec.fit_transform(train_x)
+    training = sparse.csr_matrix(training)
     testing = vec.transform(test_x)
+    testing = sparse.csr_matrix(testing)
     print(training.shape)
     print(testing.shape)
     decision_tree(training,train_y,testing,g_truth,titles)

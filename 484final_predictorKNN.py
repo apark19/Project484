@@ -5,6 +5,8 @@ import sklearn
 import time
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.feature_extraction.text import HashingVectorizer
+
 from sklearn.metrics.pairwise import cosine_similarity
 from scipy import sparse
 from operator import itemgetter
@@ -30,14 +32,15 @@ import codecs
 import csv
 from sklearn.neighbors import RadiusNeighborsClassifier
 import nltk
-sb = nltk.stem.SnowballStemmer('english')
+from nltk.stem.lancaster import LancasterStemmer
+sb = nltk.stem.LancasterStemmer()
 lem = WordNetLemmatizer()
 stpwrd = set(stopwords.words('english'))
 stpwrd_update = ["br", "eof", "i", "im", "i'm", ",", "it", "as", "the", "this", "but", "its", "it's", "you", "also",
                  "for", "us", "was", "to", "on", "there", "of", "in", "his", "hers", "-"]
 stpwrd.update(stpwrd_update)
 # DT = DecisionTreeClassifier()
-vec = TfidfVectorizer()
+vec = TfidfVectorizer(ngram_range=(1, 1))
 
 
 def Pre(par):
@@ -63,7 +66,7 @@ def Pre(par):
         paragraph)  # returns tuples with each word paired with parts of speech keyword https://medium.com/@gianpaul.r/tokenization-and-parts-of-speech-pos-tagging-in-pythons-nltk-library-2d30f70af13b
     # print(paragraph)#the above link shows the keys for the nltk parts of speech
     # print(paragraph)
-    new_paragraph = [sb.stem(word[0]) for word in paragraph if ((word[0] not in stpwrd) and (
+    new_paragraph = [word[0] for word in paragraph if ((word[0] not in stpwrd) and (
                 word[1] in pos_keep))]  # the firs condition is uneccesary if the second works properly
 
     new_paragraph = " ".join(new_paragraph)
@@ -75,7 +78,7 @@ def Pre(par):
 
 def KNN(x_data, y_label, p, g_truth, titles):
     # mlp = BaggingClassifier(MLPClassifier(hidden_layer_sizes=(2,),random_state=0,max_iter=400),n_estimators=5)
-    knn = BaggingClassifier(KNeighborsClassifier(n_neighbors=95, metric='euclidean'), n_estimators=100)
+    knn = BaggingClassifier(KNeighborsClassifier(n_neighbors=95, metric='euclidean'), n_estimators=600,n_jobs = -1)
     #knn = BaggingClassifier(RadiusNeighborsClassifier(radius=5, n_jobs=-1), n_estimators=100)
 
     knn.fit(x_data, y_label)
@@ -119,8 +122,10 @@ if __name__ == "__main__":
     g_truth = [row.lower() for row in test['genre']]
 
     test_x = np.array(list(p.map(Pre, test_x)))
-    training = vec.fit_transform(train_x)
+    training = vec.fit_transform(train_x,train_y)
+    training  = sparse.csr_matrix(training)
     testing = vec.transform(test_x)
+    testing = sparse.csr_matrix(testing)
     print(training.shape)
     print(testing.shape)
     KNN(training, train_y, testing, g_truth, titles)
@@ -129,6 +134,7 @@ if __name__ == "__main__":
     # exit()
     print("finished:")
     print("time taken %f" % (time.time() - seconds))
+
 
 
 

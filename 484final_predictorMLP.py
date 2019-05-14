@@ -24,6 +24,7 @@ from sklearn.neural_network import MLPClassifier
 from sklearn.tree import DecisionTreeClassifier
 from scipy import sparse
 from sklearn.metrics import f1_score
+from sklearn.ensemble import AdaBoostClassifier
 import codecs
 import csv
 lem = WordNetLemmatizer()
@@ -63,7 +64,7 @@ def Pre(par):
 	
     return new_paragraph
 def neural_network(x_data,y_label,p,g_truth):
-    mlp = BaggingClassifier(MLPClassifier(hidden_layer_sizes=(2,),random_state=0,max_iter=400),n_estimators=5)
+    mlp = MLPClassifier(hidden_layer_sizes=(9000,),random_state=0,max_iter=1000)
     mlp.fit(x_data,y_label)
     pred  = mlp.predict(p)
     score = f1_score(g_truth,pred, average='weighted')  
@@ -74,6 +75,7 @@ def vectorize(data):
     vector_data  = vec.fit_transform(data)
     return vector_data
 if __name__ == "__main__":
+    seconds = time.time()
     p = Pool(4)
     """
      with codecs.open('training_data(movies).csv','r','utf-8') as x_data:
@@ -81,12 +83,12 @@ if __name__ == "__main__":
             with codecs.open('prediction_dtree.dat','w','utf-8') as predictions:
                 pd.read_csv()
     """
-    train = pd.read_csv('training_data(movies).csv',index_col = 0)
-    test = pd.read_csv('movies_2020.csv',index_col = 0)
+    train = pd.read_csv('final_movies_training.csv',index_col = 0)
+    test = pd.read_csv('testFinal.csv',index_col = 0)
     train_x = [row for row in train['plot']]
     train_y = np.array([row for row in train['genre']])
     train_x = np.array(train_x)
-    test_x = [ row  for row in test['description']]
+    test_x = [ row  for row in test['plot']]
     g_truth = [ row.lower()  for row in test['genre']]
     
     
@@ -96,7 +98,8 @@ if __name__ == "__main__":
     print(training.shape)
     print(testing.shape)
     neural_network(training,train_y,testing,g_truth)
-    
+    print("finished")
+    print("time taken" % (time.time().seconds))
     #print(test_x)
     #exit()
     

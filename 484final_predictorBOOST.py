@@ -27,6 +27,8 @@ from sklearn.ensemble import AdaBoostClassifier
 from sklearn.metrics import f1_score
 import codecs
 import csv
+from gensim.test.utils import common_texts
+from gensim.sklearn_api import D2VTransformer
 lem = WordNetLemmatizer()
 stpwrd = set(stopwords.words('english'))
 stpwrd_update = ["br","eof","i","im","i'm",",","it","as","the","this","but","its","it's","you" "also","for","us","was","to","on","there","of","in","his","hers","-"]
@@ -64,7 +66,7 @@ def Pre(par):
 	
     return new_paragraph
 def boost(x_data,y_label,p,g_truth,titles):
-    ada = AdaBoostClassifier(DecisionTreeClassifier(),n_estimators = 5)
+    ada = AdaBoostClassifier(DecisionTreeClassifier(),n_estimators = 600)
     ada.fit(x_data,y_label)
     pred  = ada.predict(p)
     score = f1_score(g_truth,pred, average='weighted')  
@@ -77,7 +79,7 @@ def boost(x_data,y_label,p,g_truth,titles):
     #print(pred)
     print(score)
 def vectorize(data):
-    vec = TfidfVectorizer()
+    vec = D2VTransformer(workers=3)
     vector_data  = vec.fit_transform(data)
     return vector_data
 if __name__ == "__main__":
@@ -89,18 +91,21 @@ if __name__ == "__main__":
             with codecs.open('prediction_dtree.dat','w','utf-8') as predictions:
                 pd.read_csv()
     """
-    train = pd.read_csv('training_data(movies).csv',index_col = 0)
-    test = pd.read_csv('movies_2020.csv',)
+    train = pd.read_csv('final_movies_training.csv',index_col = 0)
+    test = pd.read_csv('testFinal.csv',)
     train_x = [row for row in train['plot']]
     train_y = np.array([row for row in train['genre']])
     train_x = np.array(train_x)
-    titles = [row.lower() for row in test['movieTitle']]
-    test_x = [ row  for row in test['description']]
+    #print(list(test['title']))
+    titles = [row for row in test['title']]
+    test_x = [ row  for row in test['plot']]
     g_truth = [ row.lower()  for row in test['genre']]
    
     test_x = np.array(list(p.map(Pre,test_x)))
-    training = vec.fit_transform(train_x)
+    training = vec.fit_transform(train_x,train_y)
+    training = sparse.csr_matrix(training)
     testing = vec.transform(test_x)
+    testing = sparse.csr_matrix(testing)
     print(training.shape)
     print(testing.shape)
     boost(training,train_y,testing,g_truth,titles)
