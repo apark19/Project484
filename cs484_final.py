@@ -1,4 +1,4 @@
-import nltk
+import nltk#creates csv file with parsed genres
 import re
 import numpy as np
 import sklearn
@@ -23,15 +23,17 @@ from sklearn.ensemble import BaggingClassifier
 from sklearn.neural_network import MLPClassifier
 from sklearn.tree import DecisionTreeClassifier
 from scipy import sparse
+import codecs
+import csv
 lem = WordNetLemmatizer()
 stpwrd = set(stopwords.words('english'))
 stpwrd_update = ["br","eof","i","im","i'm",",","it","as","the","this","but","its","it's","you" "also","for","us","was","to","on","there","of","in","his","hers","-"]
 stpwrd.update(stpwrd_update)
-DT = DecisionTreeClassifier()
+#DT = DecisionTreeClassifier()
 def Pre(par):
     #par = list(par)
     
-    paragraph = par[0].lower()#the plots are in the third element of the array. lower is used so that words will still be considered the same instance when vectorized
+    paragraph = par.lower()#the plots are in the third element of the array. lower is used so that words will still be considered the same instance when vectorized
     #print(paragraph)
     paragraph = re.sub('[^+A-Za-z0-9]+',' ',paragraph)#substittes non alphabetic or numerical charectars with a space
     #print(paragraph)
@@ -62,54 +64,75 @@ def remove_all(item,list):
         while(item in i):
             i.remove(item)
     return list
+#def genre_parser(x_,y_label):
+    
+
 if __name__ == "__main__":
     p = Pool(4)
     seconds = time.time()
-    x_tittles = pd.read_csv("movie_plots.csv",header=None,usecols=[1],index_col=0)#tittles
-    x_train = pd.read_csv("movie_plots.csv",header=None,usecols=[7],index_col=0)#plots           
-    y_train = pd.read_csv("movie_plots.csv",header =None,index_col=0,usecols=[5])#genres
+    x_tittles = pd.read_csv("finalTraining.csv",header=None,usecols=[0])#tittles
+    
+    
+    x_train = pd.read_csv("finalTraining.csv",header=None,usecols=[1])#plots           
+    y_train = pd.read_csv("finalTraining.csv",header=None,usecols=[2])#genres
     
     x_train = list(x_train.itertuples())
     y_train = list(y_train.itertuples())
     x_tittles =  list(x_tittles.itertuples())
-    y_train = [list(row)[0] for row in y_train]#converts pandas dataframe into list
+    #print(y_train)
+    y_train = [list(row)[1] for row in y_train]#converts pandas dataframe into list
+    #print(y_train)
+    x_train = [list(row)[1] for row in x_train]
+    x_tittles = [list(row)[1] for row in x_tittles]
+    print(x_tittles[0])
+    print(x_tittles[1])
+    print(y_train[0])
+    print(y_train[1])
+    """
     y_train = [y_train[i] for i in range(len(y_train)) if(y_train[i][0]!="unknown")]
     x_train = [list(x_train[i]) for i in range(len(x_train)) if(y_train[i][0]!="unknown")]#does the same as the list comprehension for y_train for x_train but removing the unknown movies
     x_tittles = [list(x_tittles[i]) for i in range(len(x_tittles)) if(y_train[i][0]!="unknown")]#does the same as the list comprehension for y_train for x_tittles but removing the unknown movies
     y_train = [y_train[i] for i in range(len(y_train)) if(y_train[i][0]!="unknown")]#removes unknown genre instances
+    """
     del y_train[0]#removes header statements
     del x_train[0]
     del x_tittles[0]
-    print(len(y_train))
-    print(len(x_train))
+    #print(len(y_train))
+    #print(len(x_train))
 
   
     #more movies will eventually have to be removed from the training set (movies that share genres or genres that are to niche) for now, this enough to carry through
-    print(len(y_train))
-    y_train = set(y_train)
+    #print(len(y_train))
+    #y_train = set(y_train)
     y_train = list(y_train)
-    print(len(y_train))
-    genres = [['thriller'],['action'],['adventure'],['fantasy'],['drama'],['comedy'],['romance',['love','romantic']],['sci-fi',['science fiction','sci','fi']],['horror'],['animation'],['documentary'],['family']]#this is the list of genre labels (first element in the list)
+    #print(len(y_train))
+    """
+    genres = [['thriller'],['action'],['adventure'],['fantasy'],['drama'],['comedy'],['romance',['love','romantic']],['sci-fi',['science fiction','sci','fi']],['horror'],['documentary'],['family']]#this is the list of genre labels (first element in the list)
     class_labels = []
     y_copy = copy.deepcopy(y_train)
     for i in range(len(y_train)):
-        print(i,y_train[i])
-        y_train[i] = re.sub('[^A-Za-z]+',' ',y_train[i])
+        #print(i,y_train[i])
+        y_train[i] = re.sub('[^A-Za-z]+',' ',y_train[i]).lower()
         y_train[i] = y_train[i].split(' ')
-        
-        
+        for s in y_train[i]:
+            for g in genres:
+                if s not in g:
+                    s = 'flag'
+        y_train[i] = remove_all('flag',[y_train[i]])[0]
         tmp_list = []
         for z in range(len(genres)):
             
             if len(genres[z]) == 1:
                # print("t",y_train[i])
                 #print("g",genres[z]) 
-                if genres[z][0] in y_train[i]:
+                if genres[z][0] == y_train[i][0]:
+                    #print(y_train[i][0])
                     #print("yyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyyy")
                     tmp_list.append(genres[z][0])
+                    break
             elif len(genres[z]) == 2:
                 for j in genres[z][1]:
-                    if j in y_train[i]:
+                    if j == y_train[i][0]:
                         #print("zzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzzz")
                         tmp_list.append(genres[z][0])
                         break
@@ -125,14 +148,18 @@ if __name__ == "__main__":
     y_train = copy.deepcopy(tmp[0])
     y_copy = copy.deepcopy(tmp[1])
     x_train = copy.deepcopy(tmp[2])
-    x_tittles[3] = copy.deepcopy(tmp[3])
+    x_tittles = copy.deepcopy(tmp[3])
     #for h in range(len(y_copy)):
         #print(y_copy[h],class_labels[h])
+    #print(len(y_train))
+    #print(len(x_train))
+    #exit()
     #print(len(class_labels))
     #print(len(y_train))
     #exit()
    
-    
+    """
+    #print(x_train)
     movie_set = [copy.deepcopy(x_tittles),copy.deepcopy(x_train),copy.deepcopy(y_train)]#for ease in accessing evenly columned tittle, plot, and genre
     #print(movie_set[1])
     movie_set[1] = list(p.map(Pre, movie_set[1]))#processes each plot (can be inputed directly in tfidfVectorize().fit_transform as it is a list of strings)
@@ -144,11 +171,23 @@ if __name__ == "__main__":
     #print(x_train[67])
     #print(movie_set[1][67])
     #x_train is not modified. the difference in the processing can be seen in the execution of the above print statements
-    movie_set[1] = [movie_set[1][i] for i in range(int(len(movie_set[1])/4))]
-    y_train = [y_train[i] for i in range(int(len(y_train)/4))]
+    print(movie_set[1])
+    #movie_set[1] = [movie_set[1][i] for i in range(int(len(movie_set[1])))]
+    #y_train = [y_train[i][0] for i in range(int(len(y_train)))]
+    #print(y_train)
+    with codecs.open('final_movies_training.csv','w','utf-8') as movies:
+        print("writing start! loading...")
+        outer = csv.writer(movies)
+        outer.writerow(['tittle','plot','genre'])
+        for i in range(len(y_train)):
+            outer.writerow([x_tittles[i],movie_set[1][i],y_train[i]])
+            #movies.write("%s %s %s" % ())
+    print("finished:")
+    print("time taken %f" % (time.time() - seconds))
+    exit()
     
-    vec = TfidfVectorizer()
-    training  = vec.fit_transform(movie_set[1])
+    #vec = TfidfVectorizer()
+   # training  = vec.fit_transform(movie_set[1])
     #movie_set[1] = training.get_feature_names()
     #movie_set[1] = sparse.csr_matrix(training.todense())
     MLP = MLPClassifier(hidden_layer_sizes=(2,))
@@ -157,7 +196,7 @@ if __name__ == "__main__":
     print(training.shape)
     print(y_train.shape)
     
-    DT.fit(training,y_train)
+   
     #print(training)
     p.close()
     p.join()
